@@ -112,7 +112,7 @@ cd GeminiTTSWebApp
 python -m venv venv
 
 # Windows:
-venv\Scriptsctivate
+venv\Scripts\ctivate
 # macOS/Linux:
 source venv/bin/activate
 
