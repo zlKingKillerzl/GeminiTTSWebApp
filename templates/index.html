@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Fala</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define a fonte Inter para todo o corpo */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilos para o modal de mensagem */
+        .modal {
+            display: none; /* Escondido por padrão */
+            position: fixed; /* Posição fixa na tela */
+            z-index: 1000; /* Acima de outros elementos */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Habilita rolagem se o conteúdo for muito grande */
+            background-color: rgba(0,0,0,0.7); /* Fundo escuro semi-transparente */
+            justify-content: center; /* Centraliza horizontalmente */
+            align-items: center; /* Centraliza verticalmente */
+        }
+        .modal-content {
+            background-color: #1a202c; /* Fundo escuro para o conteúdo do modal */
+            margin: auto; /* Margem automática para centralizar */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Largura do modal */
+            max-width: 500px; /* Largura máxima */
+            border-radius: 15px; /* Cantos arredondados */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Sombra para o modal */
+            color: #e2e8f0; /* Cor do texto claro */
+            text-align: center; /* Centraliza o texto */
+        }
+        .close-button {
+            color: #aaa;
+            float: right; /* Alinha o botão de fechar à direita */
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        /* Estilos para o spinner de carregamento */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: none; /* Escondido por padrão */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-md border border-purple-700">
+        <h1 class="text-3xl font-bold mb-6 text-center text-purple-400">Gerador de Fala</h1>
+
+        <label for="text" class="block text-sm font-medium mb-2 text-blue-300">Texto para fala:</label>
+        <textarea id="text" rows="4" required
+                  class="w-full p-3 mb-4 bg-gray-700 border border-blue-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-100"></textarea>
+
+        <label for="voice" class="block text-sm font-medium mb-2 text-purple-300">Selecione a voz:</label>
+        <select id="voice" required
+                class="w-full p-3 mb-6 bg-gray-700 border border-purple-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-100">
+            <option value="Zephyr">Zephyr</option>
+            <option value="Puck">Puck</option>
+            <option value="Charon">Charon</option>
+            <option value="Coreia">Coreia</option>
+            <option value="Fenrir">Fenrir</option>
+            <option value="Leda">Leda</option>
+            <option value="Orus">Orus</option>
+            <option value="Aoede">Aoede</option>
+            <option value="Callirhoe">Callirhoe</option>
+            <option value="Autonoe">Autonoe</option>
+            <option value="Encélado">Encélado</option>
+            <option value="Iapetus">Iapetus</option>
+            <option value="Umbriel">Umbriel</option>
+            <option value="Algieba">Algieba</option>
+            <option value="Despina">Despina</option>
+            <option value="Erinome">Erinome</option>
+            <option value="Algenib">Algenib</option>
+            <option value="Rasalgethi">Rasalgethi</option>
+            <option value="Laomedeia">Laomedeia</option>
+            <option value="Achernar">Achernar</option>
+            <option value="Alnilam">Alnilam</option>
+            <option value="Schedar">Schedar</option>
+            <option value="Gacrux">Gacrux</option>
+            <option value="Pulcherrima">Pulcherrima</option>
+            <option value="Achird">Achird</option>
+            <option value="Zubenelgenubi">Zubenelgenubi</option>
+            <option value="Vindemiatrix">Vindemiatrix</option>
+            <option value="Sadachbia">Sadachbia</option>
+            <option value="Sadalteger">Sadalteger</option>
+            <option value="Sulafar">Sulafar</option>
+        </select>
+
+        <button id="generateButton" onclick="gerarFala()"
+                class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 focus:ring-offset-gray-800 flex items-center justify-center">
+            <span id="buttonText">Gerar Fala</span>
+            <div id="loadingSpinner" class="spinner ml-2"></div>
+        </button>
+
+        <audio id="audioPlayer" controls class="w-full mt-6 rounded-lg" style="display:none;"></audio>
+    </div>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <p id="modalMessage" class="text-lg"></p>
+        </div>
+    </div>
+
+    <script>
+        // Função para exibir o modal de mensagem
+        function showModal(message) {
+            const modal = document.getElementById('myModal');
+            const modalMessage = document.getElementById('modalMessage');
+            modalMessage.textContent = message;
+            modal.style.display = 'flex'; // Exibe o modal
+        }
+
+        // Função para fechar o modal de mensagem
+        function closeModal() {
+            const modal = document.getElementById('myModal');
+            modal.style.display = 'none'; // Esconde o modal
+        }
+
+        // Função para mostrar o spinner e desabilitar o botão
+        function showLoading() {
+            const button = document.getElementById('generateButton');
+            const buttonText = document.getElementById('buttonText');
+            const spinner = document.getElementById('loadingSpinner');
+
+            button.disabled = true; // Desabilita o botão
+            buttonText.textContent = 'Gerando...'; // Altera o texto do botão
+            spinner.style.display = 'block'; // Exibe o spinner
+        }
+
+        // Função para esconder o spinner e habilitar o botão
+        function hideLoading() {
+            const button = document.getElementById('generateButton');
+            const buttonText = document.getElementById('buttonText');
+            const spinner = document.getElementById('loadingSpinner');
+
+            button.disabled = false; // Habilita o botão
+            buttonText.textContent = 'Gerar Fala'; // Restaura o texto do botão
+            spinner.style.display = 'none'; // Esconde o spinner
+        }
+
+        async function gerarFala() {
+            const texto = document.getElementById('text').value;
+            const voz = document.getElementById('voice').value;
+            const audio = document.getElementById('audioPlayer');
+
+            if (!texto) {
+                showModal("Por favor, digite um texto para gerar a fala!");
+                return;
+            }
+
+            showLoading(); // Mostra o spinner e desabilita o botão
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: texto, voice: voz })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    audio.src = url;
+                    audio.style.display = 'block'; // Exibe o player de áudio
+                    audio.play();
+                } else {
+                    const error = await response.json();
+                    showModal('Erro: ' + (error.error || 'Erro desconhecido ao gerar a fala.'));
+                }
+            } catch (error) {
+                showModal('Ocorreu um erro na requisição: ' + error.message);
+            } finally {
+                hideLoading(); // Esconde o spinner e habilita o botão, independentemente do resultado
+            }
+        }
+    </script>
+</body>
+</html>
