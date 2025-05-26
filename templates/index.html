@@ -3,44 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Fala</title>
+    <title>Gerador de Fala Moderno</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Define a fonte Inter para todo o corpo */
+        /* Estilos globais e de tema */
         body {
             font-family: 'Inter', sans-serif;
+            /* Fundo com degradê sutil para profundidade */
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a);
+            color: #e0e0e0; /* Cor do texto principal */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem; /* Padding responsivo */
+            box-sizing: border-box;
+            overflow: hidden; /* Evita rolagem indesejada */
         }
-        /* Estilos para o modal de mensagem */
+        /* Contêiner principal da aplicação (card) */
+        .app-card {
+            background-color: rgba(30, 30, 30, 0.85); /* Fundo com transparência (glassmorphism) */
+            backdrop-filter: blur(8px); /* Efeito de desfoque de fundo */
+            padding: 2.5rem;
+            border-radius: 1.5rem; /* Cantos mais arredondados */
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7); /* Sombra mais intensa para efeito flutuante */
+            width: 100%;
+            max-width: 500px; /* Largura máxima controlada */
+            border: 1px solid rgba(123, 44, 191, 0.6); /* Borda violeta semi-transparente */
+            transition: all 0.4s ease-in-out; /* Transição suave para hover */
+        }
+        .app-card:hover {
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9); /* Sombra mais intensa no hover */
+            border-color: rgba(72, 149, 239, 0.8); /* Borda azul no hover */
+        }
+
+        /* Estilos para campos de entrada e seleção */
+        .input-field {
+            background-color: rgba(42, 42, 42, 0.7); /* Fundo com transparência */
+            border: 1px solid rgba(74, 12, 163, 0.6); /* Borda violeta */
+            color: #e0e0e0;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #4895ef; /* Borda azul no foco */
+            box-shadow: 0 0 0 4px rgba(72, 149, 239, 0.4); /* Brilho azul no foco */
+            background-color: rgba(42, 42, 42, 0.9);
+        }
+
+        /* Estilos para o botão Gerar Fala */
+        .generate-button {
+            background: linear-gradient(45deg, #7b2cbf, #4a0ca3); /* Degradê violeta */
+            color: white;
+            padding: 0.85rem 1.5rem; /* Padding aprimorado */
+            border-radius: 0.85rem; /* Cantos mais arredondados */
+            font-weight: 700; /* Mais negrito */
+            cursor: pointer;
+            transition: all 0.3s ease-in-out; /* Transições suaves */
+            box-shadow: 0 10px 25px rgba(123, 44, 191, 0.5); /* Sombra para profundidade */
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 3rem; /* Altura mínima para consistência */
+        }
+        .generate-button:hover {
+            background: linear-gradient(45deg, #4a0ca3, #7b2cbf); /* Inverte degradê no hover */
+            box-shadow: 0 15px 35px rgba(74, 12, 163, 0.7); /* Sombra mais intensa no hover */
+            transform: translateY(-4px) scale(1.02); /* Levanta e cresce levemente */
+        }
+        .generate-button:active {
+            transform: translateY(-1px) scale(0.98); /* Pequeno "afundamento" ao clicar */
+            box-shadow: 0 5px 10px rgba(74, 12, 163, 0.4);
+        }
+        .generate-button:disabled {
+            background: linear-gradient(45deg, #555, #333); /* Degradê cinza para desabilitado */
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Estilos para o spinner de carregamento */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+            display: none; /* Escondido por padrão */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Estilos para o modal de mensagem (personalizado, não alert()) */
         .modal {
             display: none; /* Escondido por padrão */
-            position: fixed; /* Posição fixa na tela */
-            z-index: 1000; /* Acima de outros elementos */
+            position: fixed;
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto; /* Habilita rolagem se o conteúdo for muito grande */
-            background-color: rgba(0,0,0,0.7); /* Fundo escuro semi-transparente */
-            justify-content: center; /* Centraliza horizontalmente */
-            align-items: center; /* Centraliza verticalmente */
+            background-color: rgba(0,0,0,0.8); /* Fundo mais escuro e opaco */
+            backdrop-filter: blur(4px); /* Desfoque do fundo */
+            justify-content: center;
+            align-items: center;
+            opacity: 0; /* Começa invisível para transição */
+            transition: opacity 0.3s ease;
+        }
+        .modal.is-visible {
+            opacity: 1;
+            display: flex;
         }
         .modal-content {
-            background-color: #1a202c; /* Fundo escuro para o conteúdo do modal */
-            margin: auto; /* Margem automática para centralizar */
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%; /* Largura do modal */
-            max-width: 500px; /* Largura máxima */
-            border-radius: 15px; /* Cantos arredondados */
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Sombra para o modal */
-            color: #e2e8f0; /* Cor do texto claro */
-            text-align: center; /* Centraliza o texto */
+            background-color: rgba(30, 30, 30, 0.95); /* Fundo do modal com transparência */
+            padding: 30px;
+            border: 1px solid #4895ef; /* Borda azul */
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6); /* Sombra mais forte */
+            color: #e2e8f0;
+            text-align: center;
+            max-width: 450px; /* Largura máxima */
+            transform: translateY(-20px); /* Começa ligeiramente acima para o efeito */
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+        .modal.is-visible .modal-content {
+            transform: translateY(0); /* Desliza para a posição final */
+            opacity: 1;
         }
         .close-button {
             color: #aaa;
-            float: right; /* Alinha o botão de fechar à direita */
+            float: right;
             font-size: 28px;
             font-weight: bold;
+            transition: color 0.2s ease;
         }
         .close-button:hover,
         .close-button:focus {
@@ -48,67 +152,164 @@
             text-decoration: none;
             cursor: pointer;
         }
-        /* Estilos para o spinner de carregamento */
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #fff;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            display: none; /* Escondido por padrão */
+        .modal-message {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .modal-ok-button {
+            background: linear-gradient(45deg, #4895ef, #2a62bf);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(72, 149, 239, 0.4);
+            border: none;
+        }
+        .modal-ok-button:hover {
+            background: linear-gradient(45deg, #2a62bf, #4895ef);
+            box-shadow: 0 4px 10px rgba(42, 98, 191, 0.6);
+            transform: translateY(-1px);
+        }
+
+        /* --- Estilos para o Dropdown Customizado (Voz) --- */
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        .select-selected {
+            background-color: rgba(42, 42, 42, 0.7);
+            border: 1px solid rgba(123, 44, 191, 0.6); /* Borda violeta */
+            color: #e0e0e0;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .select-selected:hover {
+            border-color: rgba(72, 149, 239, 0.8); /* Borda azul no hover */
+            background-color: rgba(42, 42, 42, 0.9);
+        }
+
+        .select-selected:after {
+            content: "";
+            width: 0;
+            height: 0;
+            border: 6px solid transparent;
+            border-color: #4895ef transparent transparent transparent; /* Seta azul */
+            margin-left: 0.5rem; /* Espaçamento da seta */
+            transition: transform 0.3s ease;
+        }
+
+        .select-selected.select-arrow-active:after {
+            border-color: transparent transparent #4895ef transparent;
+            transform: rotate(180deg); /* Gira a seta quando ativo */
+        }
+
+        .select-items {
+            position: absolute;
+            background-color: rgba(42, 42, 42, 0.95); /* Fundo das opções com transparência */
+            border: 1px solid rgba(123, 44, 191, 0.8); /* Borda violeta */
+            border-radius: 0.75rem;
+            top: 100%; /* Posiciona abaixo do selecionado */
+            left: 0;
+            right: 0;
+            z-index: 99;
+            max-height: 200px; /* Altura máxima para rolagem */
+            overflow-y: auto; /* Adiciona rolagem se muitas opções */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            margin-top: 0.5rem;
+            opacity: 0; /* Começa invisível para transição */
+            transform: translateY(10px); /* Começa ligeiramente abaixo */
+            pointer-events: none; /* Não interage quando invisível */
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .select-items.select-hide {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+        }
+        .select-items:not(.select-hide) {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .select-items div {
+            color: #e0e0e0;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            border-bottom: 1px solid rgba(58, 58, 58, 0.8); /* Linha divisória semi-transparente */
+        }
+
+        .select-items div:last-child {
+            border-bottom: none;
+        }
+
+        .select-items div:hover, .same-as-selected {
+            background-color: #4895ef; /* Azul no hover/selecionado */
+            color: white;
         }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-md border border-purple-700">
-        <h1 class="text-3xl font-bold mb-6 text-center text-purple-400">Gerador de Fala</h1>
+    <div class="app-card">
+        <h1 class="text-3xl font-bold mb-6 text-center text-purple-400">Gerador de Fala Gemini</h1>
 
         <label for="text" class="block text-sm font-medium mb-2 text-blue-300">Texto para fala:</label>
         <textarea id="text" rows="4" required
-                  class="w-full p-3 mb-4 bg-gray-700 border border-blue-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-100"></textarea>
+                  class="input-field w-full mb-4 placeholder-gray-400"></textarea>
 
-        <label for="voice" class="block text-sm font-medium mb-2 text-purple-300">Selecione a voz:</label>
-        <select id="voice" required
-                class="w-full p-3 mb-6 bg-gray-700 border border-purple-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-100">
-            <option value="Zephyr">Zephyr</option>
-            <option value="Puck">Puck</option>
-            <option value="Charon">Charon</option>
-            <option value="Coreia">Coreia</option>
-            <option value="Fenrir">Fenrir</option>
-            <option value="Leda">Leda</option>
-            <option value="Orus">Orus</option>
-            <option value="Aoede">Aoede</option>
-            <option value="Callirhoe">Callirhoe</option>
-            <option value="Autonoe">Autonoe</option>
-            <option value="Encélado">Encélado</option>
-            <option value="Iapetus">Iapetus</option>
-            <option value="Umbriel">Umbriel</option>
-            <option value="Algieba">Algieba</option>
-            <option value="Despina">Despina</option>
-            <option value="Erinome">Erinome</option>
-            <option value="Algenib">Algenib</option>
-            <option value="Rasalgethi">Rasalgethi</option>
-            <option value="Laomedeia">Laomedeia</option>
-            <option value="Achernar">Achernar</option>
-            <option value="Alnilam">Alnilam</option>
-            <option value="Schedar">Schedar</option>
-            <option value="Gacrux">Gacrux</option>
-            <option value="Pulcherrima">Pulcherrima</option>
-            <option value="Achird">Achird</option>
-            <option value="Zubenelgenubi">Zubenelgenubi</option>
-            <option value="Vindemiatrix">Vindemiatrix</option>
-            <option value="Sadachbia">Sadachbia</option>
-            <option value="Sadalteger">Sadalteger</option>
-            <option value="Sulafar">Sulafar</option>
-        </select>
+        <label for="voiceDisplay" class="block text-sm font-medium mb-2 text-purple-300">Selecione a voz:</label>
+        <div class="custom-select-wrapper">
+            <div class="select-selected" id="voiceDisplay" data-value="Zephyr">
+                Zephyr
+            </div>
+            <div class="select-items select-hide" id="voiceOptions">
+                <div data-value="Zephyr">Zephyr</div>
+                <div data-value="Puck">Puck</div>
+                <div data-value="Charon">Charon</div>
+                <div data-value="Coreia">Coreia</div>
+                <div data-value="Fenrir">Fenrir</div>
+                <div data-value="Leda">Leda</div>
+                <div data-value="Orus">Orus</div>
+                <div data-value="Aoede">Aoede</div>
+                <div data-value="Callirhoe">Callirhoe</div>
+                <div data-value="Autonoe">Autonoe</div>
+                <div data-value="Encélado">Encélado</div>
+                <div data-value="Iapetus">Iapetus</div>
+                <div data-value="Umbriel">Umbriel</div>
+                <div data-value="Algieba">Algieba</div>
+                <div data-value="Despina">Despina</div>
+                <div data-value="Erinome">Erinome</div>
+                <div data-value="Algenib">Algenib</div>
+                <div data-value="Rasalgethi">Rasalgethi</div>
+                <div data-value="Laomedeia">Laomedeia</div>
+                <div data-value="Achernar">Achernar</div>
+                <div data-value="Alnilam">Alnilam</div>
+                <div data-value="Schedar">Schedar</div>
+                <div data-value="Gacrux">Gacrux</div>
+                <div data-value="Pulcherrima">Pulcherrima</div>
+                <div data-value="Achird">Achird</div>
+                <div data-value="Zubenelgenubi">Zubenelgenubi</div>
+                <div data-value="Vindemiatrix">Vindemiatrix</div>
+                <div data-value="Sadachbia">Sadachbia</div>
+                <div data-value="Sadalteger">Sadalteger</div>
+                <div data-value="Sulafar">Sulafar</div>
+            </div>
+        </div>
 
         <button id="generateButton" onclick="gerarFala()"
-                class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 focus:ring-offset-gray-800 flex items-center justify-center">
+                class="generate-button w-full">
             <span id="buttonText">Gerar Fala</span>
             <div id="loadingSpinner" class="spinner ml-2"></div>
         </button>
@@ -119,23 +320,29 @@
     <div id="myModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal()">&times;</span>
-            <p id="modalMessage" class="text-lg"></p>
+            <p id="modalMessage" class="modal-message"></p>
+            <button class="modal-ok-button" onclick="closeModal()">OK</button>
         </div>
     </div>
 
     <script>
+        // Referências aos elementos do dropdown customizado de voz
+        const voiceDisplay = document.getElementById('voiceDisplay');
+        const voiceOptions = document.getElementById('voiceOptions');
+        const voiceOptionItems = voiceOptions.getElementsByTagName('div');
+
         // Função para exibir o modal de mensagem
         function showModal(message) {
             const modal = document.getElementById('myModal');
             const modalMessage = document.getElementById('modalMessage');
             modalMessage.textContent = message;
-            modal.style.display = 'flex'; // Exibe o modal
+            modal.classList.add('is-visible');
         }
 
         // Função para fechar o modal de mensagem
         function closeModal() {
             const modal = document.getElementById('myModal');
-            modal.style.display = 'none'; // Esconde o modal
+            modal.classList.remove('is-visible');
         }
 
         // Função para mostrar o spinner e desabilitar o botão
@@ -144,9 +351,9 @@
             const buttonText = document.getElementById('buttonText');
             const spinner = document.getElementById('loadingSpinner');
 
-            button.disabled = true; // Desabilita o botão
-            buttonText.textContent = 'Gerando...'; // Altera o texto do botão
-            spinner.style.display = 'block'; // Exibe o spinner
+            button.disabled = true;
+            buttonText.textContent = 'Gerando...';
+            spinner.style.display = 'block';
         }
 
         // Função para esconder o spinner e habilitar o botão
@@ -155,14 +362,15 @@
             const buttonText = document.getElementById('buttonText');
             const spinner = document.getElementById('loadingSpinner');
 
-            button.disabled = false; // Habilita o botão
-            buttonText.textContent = 'Gerar Fala'; // Restaura o texto do botão
-            spinner.style.display = 'none'; // Esconde o spinner
+            button.disabled = false;
+            buttonText.textContent = 'Gerar Fala';
+            spinner.style.display = 'none';
         }
 
         async function gerarFala() {
             const texto = document.getElementById('text').value;
-            const voz = document.getElementById('voice').value;
+            // Pega o valor da voz do atributo data-value do dropdown customizado
+            const voz = voiceDisplay.getAttribute('data-value');
             const audio = document.getElementById('audioPlayer');
 
             if (!texto) {
@@ -170,7 +378,7 @@
                 return;
             }
 
-            showLoading(); // Mostra o spinner e desabilita o botão
+            showLoading();
 
             try {
                 const response = await fetch('/api/generate', {
@@ -185,7 +393,7 @@
                     const blob = await response.blob();
                     const url = URL.createObjectURL(blob);
                     audio.src = url;
-                    audio.style.display = 'block'; // Exibe o player de áudio
+                    audio.style.display = 'block';
                     audio.play();
                 } else {
                     const error = await response.json();
@@ -194,9 +402,59 @@
             } catch (error) {
                 showModal('Ocorreu um erro na requisição: ' + error.message);
             } finally {
-                hideLoading(); // Esconde o spinner e habilita o botão, independentemente do resultado
+                hideLoading();
             }
         }
+
+        // --- Lógica do Dropdown Customizado (Voz) ---
+        // Adiciona um event listener para abrir/fechar o dropdown
+        voiceDisplay.addEventListener('click', function(e) {
+            e.stopPropagation(); // Impede que o clique se propague para o documento
+            closeAllCustomDropdowns(this); // Fecha outros dropdowns customizados abertos
+            voiceOptions.classList.toggle('select-hide'); // Alterna a visibilidade das opções
+            this.classList.toggle('select-arrow-active'); // Gira a seta
+        });
+
+        // Para cada item nas opções do dropdown de voz
+        for (let i = 0; i < voiceOptionItems.length; i++) {
+            voiceOptionItems[i].addEventListener('click', function(e) {
+                // Atualiza o texto exibido e o valor data-value
+                voiceDisplay.innerHTML = this.innerHTML;
+                voiceDisplay.setAttribute('data-value', this.getAttribute('data-value'));
+
+                // Remove a classe 'same-as-selected' de todos os itens e adiciona ao item clicado
+                for (let j = 0; j < voiceOptionItems.length; j++) {
+                    voiceOptionItems[j].classList.remove('same-as-selected');
+                }
+                this.classList.add('same-as-selected');
+
+                // Fecha o dropdown
+                voiceOptions.classList.add('select-hide');
+                voiceDisplay.classList.remove('select-arrow-active');
+            });
+        }
+
+        // Função para fechar todos os dropdowns customizados, exceto o que foi clicado (se houver)
+        function closeAllCustomDropdowns(exceptElement) {
+            const allSelectItems = document.getElementsByClassName("select-items");
+            const allSelectSelected = document.getElementsByClassName("select-selected");
+
+            for (let i = 0; i < allSelectSelected.length; i++) {
+                if (exceptElement !== allSelectSelected[i]) {
+                    allSelectSelected[i].classList.remove("select-arrow-active");
+                }
+            }
+            for (let i = 0; i < allSelectItems.length; i++) {
+                if (exceptElement !== allSelectItems[i] && !allSelectItems[i].contains(exceptElement)) {
+                    allSelectItems[i].classList.add("select-hide");
+                }
+            }
+        }
+
+        // Fecha o dropdown se o usuário clicar fora dele
+        document.addEventListener('click', (e) => {
+            closeAllCustomDropdowns(e.target);
+        });
     </script>
 </body>
 </html>

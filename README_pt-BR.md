@@ -8,7 +8,8 @@ Uma aplicação simples com Flask que permite converter texto em fala (Text-to-S
 - 🗣️ Conversão de texto para fala (TTS) com vozes naturais.
 - 🌐 Interface web intuitiva.
 - 🔗 API REST para automação e integrações.
-- 💾 Retorno de áudio em formato WAV.
+- 🎧 Geração de áudio no formato WAV.
+- 📦 Frontend simples em HTML (`index.html` dentro da pasta `templates/`).
 - 🐳 Suporte a Docker.
 
 ---
@@ -16,7 +17,7 @@ Uma aplicação simples com Flask que permite converter texto em fala (Text-to-S
 ## 🔑 Como Obter Sua Chave de API
 
 1. Acesse o [Google AI Studio](https://aistudio.google.com/apikey).
-2. Faça login na sua conta Google.
+2. Faça login com sua conta Google.
 3. Clique em **"Create API Key"**.
 4. Copie sua chave gerada — ela será algo como:
 
@@ -28,50 +29,17 @@ AIza...
 
 ## 🔐 Como Configurar a Chave no Projeto
 
-### ✅ Opção 1 — Diretamente no Código (Simples)
+### ✅ Usando Variável de Ambiente (Recomendado)
 
-Abra o arquivo `app.py` e substitua:
+1. Crie um arquivo chamado `.env` na raiz do projeto.
 
-```python
-client = genai.Client(api_key="CHAVE_DA_API")
+```env
+GEMINI_API_KEY=SUA_CHAVE_AQUI
 ```
 
-Por:
+2. A aplicação carrega automaticamente esse `.env` usando `python-dotenv`.
 
-```python
-client = genai.Client(api_key="SUA_CHAVE_AQUI")
-```
-
----
-
-### ✅ Opção 2 — Usando Variável de Ambiente (Recomendado)
-
-No `app.py`, substitua:
-
-```python
-client = genai.Client(api_key="CHAVE_DA_API")
-```
-
-Por:
-
-```python
-client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
-```
-
-Depois, crie um arquivo `.env` na raiz do projeto:
-
-```
-GOOGLE_API_KEY=SUA_CHAVE_AQUI
-```
-
-E adicione no início do `app.py`:
-
-```python
-from dotenv import load_dotenv
-load_dotenv()
-```
-
-Instale a biblioteca se ainda não tiver:
+Se não tiver instalado, rode:
 
 ```bash
 pip install python-dotenv
@@ -83,41 +51,32 @@ pip install python-dotenv
 
 ```
 GeminiTTSWebApp/
-├── app.py                 # Backend Flask
+├── app.py                 # Backend Flask com API e interface web
 ├── templates/
-│   └── index.html         # Interface Web
+│   └── index.html         # Interface web
 ├── requirements.txt       # Dependências Python
 ├── Dockerfile             # Imagem Docker
 ├── docker-compose.yml     # Orquestração Docker
+├── README.md              # Documentação em inglês
+├── README_pt-BR.md        # Documentação em português
 ```
 
 ---
 
-## 🚀 Como Instalar e Executar
+## 🚀 Como Executar a Aplicação
 
-### ✅ Pré-requisitos
-
-- Python 3.8 ou superior
-- pip
-- (Opcional) Conda
-- (Opcional) Docker e Docker Compose
-
----
-
-### ▶️ Usando Python com `venv`
+### ▶️ Usando Python (Recomendado)
 
 ```bash
 cd GeminiTTSWebApp
 
 python -m venv venv
-
 # Windows:
-venv\Scripts\activate
+venv\Scriptsctivate
 # macOS/Linux:
 source venv/bin/activate
 
 pip install -r requirements.txt
-
 python app.py
 ```
 
@@ -140,25 +99,19 @@ python app.py
 
 ---
 
-## 🐳 Como Executar com Docker
+## 🐳 Executando com Docker
 
-### 🔧 Usando Docker Compose
+### Com Docker Compose
 
 ```bash
 docker-compose up --build
 ```
 
-### 🐳 Docker Manual
+### Ou manualmente:
 
 ```bash
 docker build -t geminitts .
-docker run -p 5000:5000 -e GOOGLE_API_KEY=SUA_CHAVE_AQUI geminitts
-```
-
-Acesse:
-
-```
-http://localhost:5000
+docker run -p 5000:5000 -e GEMINI_API_KEY=SUA_CHAVE_AQUI geminitts
 ```
 
 ---
@@ -172,9 +125,9 @@ http://localhost:5000
 ```
 
 2. Digite o texto que deseja converter.
-3. Escolha a voz (ex.: `Zephyr`).
+3. Escolha a voz (ex.: `Zephyr`, `CloudNarrator`, etc.).
 4. Clique em **"Gerar Áudio"**.
-5. Baixe ou escute o áudio gerado.
+5. Baixe e escute o áudio gerado (`.wav`).
 
 ---
 
@@ -195,9 +148,6 @@ POST /api/generate
 }
 ```
 
-- `text`: (obrigatório) Texto a ser convertido.
-- `voice`: (obrigatório) Nome da voz. Exemplo de vozes: `Zephyr`, `CloudNarrator`, etc.
-
 ### 📤 Resposta
 
 - Retorna um arquivo `.wav` com o áudio gerado.
@@ -205,17 +155,15 @@ POST /api/generate
 ### 🧪 Exemplo com curl
 
 ```bash
-curl -X POST http://127.0.0.1:5000/api/generate \
--H "Content-Type: application/json" \
--d '{"text":"Olá, bem-vindo ao Gemini TTS Web App","voice":"Zephyr"}' --output output.wav
+curl -X POST http://127.0.0.1:5000/api/generate -H "Content-Type: application/json" -d '{"text":"Olá, bem-vindo ao Gemini TTS Web App","voice":"Zephyr"}' --output output.wav
 ```
 
 ---
 
-## ⚠️ Observações Importantes
+## ⚠️ Observações
 
-- ✅ As vozes disponíveis dependem do modelo Gemini e das permissões da API.
-- ⚙️ Configure corretamente sua chave API no Google AI Studio ([https://aistudio.google.com/apikey](https://aistudio.google.com/apikey)).
+- ✅ A disponibilidade das vozes depende do modelo Gemini e das permissões da API.
+- ⚙️ A aplicação web e API não funcionarão sem configurar sua chave de API no `.env`.
 
 ---
 

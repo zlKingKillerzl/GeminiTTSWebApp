@@ -8,7 +8,8 @@ A simple Flask web application that converts text into speech (Text-to-Speech) u
 - 🗣️ Convert text to speech (TTS) with natural voices.
 - 🌐 Intuitive web interface.
 - 🔗 REST API for automation and integrations.
-- 💾 Audio output in WAV format.
+- 🎧 Audio output in WAV format.
+- 📦 Simple frontend with HTML (index.html inside `templates/`).
 - 🐳 Docker support.
 
 ---
@@ -28,50 +29,17 @@ AIza...
 
 ## 🔐 How to Configure the API Key
 
-### ✅ Option 1 — Directly in the Code (Simple)
+### ✅ Using Environment Variables (Recommended)
 
-Open `app.py` and replace:
+1. Create a file named `.env` in the root of the project.
 
-```python
-client = genai.Client(api_key="CHAVE_DA_API")
+```env
+GEMINI_API_KEY=YOUR_API_KEY
 ```
 
-With:
+2. The application automatically loads this `.env` file using `python-dotenv`.
 
-```python
-client = genai.Client(api_key="YOUR_API_KEY")
-```
-
----
-
-### ✅ Option 2 — Using Environment Variables (Recommended)
-
-In `app.py`, replace:
-
-```python
-client = genai.Client(api_key="CHAVE_DA_API")
-```
-
-With:
-
-```python
-client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
-```
-
-Then create a `.env` file in the project root with:
-
-```
-GOOGLE_API_KEY=YOUR_API_KEY
-```
-
-At the top of `app.py`, add:
-
-```python
-from dotenv import load_dotenv
-load_dotenv()
-```
-
-Install the dotenv package if needed:
+If not installed, run:
 
 ```bash
 pip install python-dotenv
@@ -83,41 +51,32 @@ pip install python-dotenv
 
 ```
 GeminiTTSWebApp/
-├── app.py                 # Flask backend
+├── app.py                 # Flask backend with API and web interface
 ├── templates/
 │   └── index.html         # Web interface
 ├── requirements.txt       # Python dependencies
 ├── Dockerfile             # Docker image
 ├── docker-compose.yml     # Docker orchestration
+├── README.md              # English documentation
+├── README_pt-BR.md        # Portuguese documentation
 ```
 
 ---
 
-## 🚀 Installation and Running
+## 🚀 Running the Application
 
-### ✅ Prerequisites
-
-- Python 3.8+
-- pip
-- (Optional) Conda
-- (Optional) Docker and Docker Compose
-
----
-
-### ▶️ Running with Python and `venv`
+### ▶️ Using Python (Recommended)
 
 ```bash
 cd GeminiTTSWebApp
 
 python -m venv venv
-
 # Windows:
 venv\Scripts\ctivate
 # macOS/Linux:
 source venv/bin/activate
 
 pip install -r requirements.txt
-
 python app.py
 ```
 
@@ -129,7 +88,7 @@ http://127.0.0.1:5000
 
 ---
 
-### ▶️ Running with Conda
+### ▶️ Using Conda
 
 ```bash
 conda create -n geminitts python=3.10
@@ -142,28 +101,22 @@ python app.py
 
 ## 🐳 Running with Docker
 
-### Using Docker Compose (Recommended)
+### Using Docker Compose
 
 ```bash
 docker-compose up --build
 ```
 
-### Or manually with Docker
+### Or manually:
 
 ```bash
 docker build -t geminitts .
-docker run -p 5000:5000 -e GOOGLE_API_KEY=YOUR_API_KEY geminitts
-```
-
-Access:
-
-```
-http://localhost:5000
+docker run -p 5000:5000 -e GEMINI_API_KEY=YOUR_API_KEY geminitts
 ```
 
 ---
 
-## 🌐 How to Use the Web Interface
+## 🌐 Web Interface Usage
 
 1. Open:
 
@@ -172,9 +125,9 @@ http://localhost:5000
 ```
 
 2. Enter the text you want to convert.
-3. Select the voice (e.g., `Zephyr`).
+3. Select the voice (e.g., `Zephyr`, `CloudNarrator`, etc.).
 4. Click **"Generate Audio"**.
-5. Download or listen to the generated audio.
+5. Download and listen to the generated `.wav` file.
 
 ---
 
@@ -195,12 +148,9 @@ POST /api/generate
 }
 ```
 
-- `text`: (required) The text to convert.
-- `voice`: (required) Voice name. Example: `Zephyr`, `CloudNarrator`, etc.
-
 ### 📤 Response
 
-- Returns a `.wav` file with the generated audio.
+- Returns a `.wav` audio file.
 
 ### 🧪 Curl Example
 
@@ -210,10 +160,10 @@ curl -X POST http://127.0.0.1:5000/api/generate -H "Content-Type: application/js
 
 ---
 
-## ⚠️ Important Notes
+## ⚠️ Notes
 
-- ✅ Available voices depend on the Gemini model and API permissions.
-- ⚙️ Make sure to set up your API key properly at [Google AI Studio](https://aistudio.google.com/apikey).
+- ✅ Voices availability depends on your Gemini model and permissions.
+- ⚙️ The web app and API will not work without configuring your API key in `.env`.
 
 ---
 
